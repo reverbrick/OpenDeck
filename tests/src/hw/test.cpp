@@ -22,21 +22,22 @@ namespace
         standardWithDeviceCheck
     };
 
-    const std::string handshake_req            = "F0 00 53 43 00 00 01 F7";
-    const std::string reboot_req               = "F0 00 53 43 00 00 7F F7";
-    const std::string handshake_ack            = "F0 00 53 43 01 00 01 F7";
-    const std::string factory_reset_req        = "F0 00 53 43 00 00 44 F7";
-    const std::string btldr_req                = "F0 00 53 43 00 00 55 F7";
-    const std::string backup_req               = "F0 00 53 43 00 00 1B F7";
-    const std::string usb_power_off_cmd        = "echo write_high 1 > /dev/actl";
-    const std::string usb_power_on_cmd         = "echo write_low 1 > /dev/actl";
-    const std::string sysex_fw_update_delay_ms = "5";
-    const uint32_t    startup_delay_ms         = 10000;
-    const std::string fw_build_dir             = "../src/build/merged/";
-    const std::string fw_build_type_subdir     = "release/";
-    const std::string temp_midi_data_location  = "/tmp/temp_midi_data";
-    const std::string backup_file_location     = "/tmp/backup.txt";
-    bool              powerStatus              = false;
+    const std::string handshake_req             = "F0 00 53 43 00 00 01 F7";
+    const std::string reboot_req                = "F0 00 53 43 00 00 7F F7";
+    const std::string handshake_ack             = "F0 00 53 43 01 00 01 F7";
+    const std::string factory_reset_req         = "F0 00 53 43 00 00 44 F7";
+    const std::string btldr_req                 = "F0 00 53 43 00 00 55 F7";
+    const std::string backup_req                = "F0 00 53 43 00 00 1B F7";
+    const std::string usb_power_off_cmd         = "echo write_high 1 > /dev/actl";
+    const std::string usb_power_on_cmd          = "echo write_low 1 > /dev/actl";
+    const std::string sysex_fw_update_delay_ms  = "5";
+    const uint32_t    startup_delay_ms          = 10000;
+    const std::string fw_build_dir              = "../src/build/merged/";
+    const std::string fw_build_type_subdir      = "release/";
+    const std::string temp_midi_data_location   = "/tmp/temp_midi_data";
+    const std::string backup_file_location      = "/tmp/backup.txt";
+    bool              powerStatus               = false;
+    const std::string latest_github_release_dir = "/tmp/latest_github_release";
 
     DBstorageMock dbStorageMock;
     Database      database = Database(dbStorageMock, false);
@@ -194,17 +195,28 @@ namespace
         MIDIHelper::flush();
     }
 
-    void flash()
+    void flash(bool releaseBinary = false)
     {
-        auto flash = [](std::string target, std::string args) {
+        auto flash = [&](std::string target, std::string args) {
             const size_t ALLOWED_REPEATS = 2;
             int          result          = -1;
             std::string  flashTarget     = " TARGET=" + target;
+            std::string  extraArgs       = "";
+
+            if (releaseBinary)
+            {
+                LOG(INFO) << "Flashing release binary";
+                extraArgs += " FLASH_BINARY_DIR=" + latest_github_release_dir + " ";
+            }
+            else
+            {
+                LOG(INFO) << "Flashing development binary";
+            }
 
             for (int i = 0; i < ALLOWED_REPEATS; i++)
             {
                 LOG(INFO) << "Flashing the device, attempt " << i + 1;
-                result = test::wsystem(flash_cmd + flashTarget + " " + args);
+                result = test::wsystem(flash_cmd + flashTarget + " " + args + extraArgs);
 
                 if (result)
                 {
@@ -558,43 +570,54 @@ TEST_CASE(DatabaseInitialValues)
 
 TEST_CASE(FwUpdate)
 {
-    std::string syxPath = fw_build_dir + BOARD_STRING + "/" + fw_build_type_subdir + BOARD_STRING + ".sysex.syx";
+    auto enterBootloaderMode = []() {
+        LOG(INFO) << "Entering bootloader mode";
+        TEST_ASSERT(std::string("") == MIDIHelper::sendRawSysEx(btldr_req, false));
+        LOG(INFO) << "Waiting " << startup_delay_ms / 2 << " ms";
+        test::sleepMs(startup_delay_ms / 2);
 
-    if (!std::filesystem::exists(syxPath))
-    {
-        LOG(ERROR) << ".syx file not found, aborting";
-        TEST_ASSERT(false == true);
-    }
+        if (!MIDIHelper::devicePresent(true))
+        {
+            LOG(ERROR) << "OpenDeck DFU device not found after bootloader request";
+            TEST_ASSERT(false == true);
+        }
+        else
+        {
+            LOG(INFO) << "Entered bootloader mode";
+        }
+    };
 
-    LOG(INFO) << "Entering bootloader mode";
-    TEST_ASSERT(std::string("") == MIDIHelper::sendRawSysEx(btldr_req, false));
+    auto sendFirmwareFile = []() {
+        std::string syxPath = fw_build_dir + BOARD_STRING + "/" + fw_build_type_subdir + BOARD_STRING + ".sysex.syx";
 
-    LOG(INFO) << "Waiting " << startup_delay_ms / 2 << " ms";
-    test::sleepMs(startup_delay_ms / 2);
+        if (!std::filesystem::exists(syxPath))
+        {
+            LOG(ERROR) << ".syx file not found, aborting";
+            TEST_ASSERT(false == true);
+        }
 
-    if (!MIDIHelper::devicePresent(true))
-    {
-        LOG(ERROR) << "OpenDeck DFU device not found after bootloader request";
-        TEST_ASSERT(false == true);
-    }
-    else
-    {
-        LOG(INFO) << "Entered bootloader mode";
-    }
+        LOG(INFO) << "Sending firmware file to device";
+        std::string cmd = std::string("amidi -p ") + MIDIHelper::amidiPort(OPENDECK_DFU_MIDI_DEVICE_NAME) + " -s " + syxPath + " -i " + sysex_fw_update_delay_ms;
+        TEST_ASSERT_EQUAL_INT(0, test::wsystem(cmd));
+        LOG(INFO) << "Firmware file sent successfully, waiting " << startup_delay_ms << " ms";
+        test::sleepMs(startup_delay_ms);
 
-    LOG(INFO) << "Sending firmware file to device";
-    std::string cmd = std::string("amidi -p ") + MIDIHelper::amidiPort(OPENDECK_DFU_MIDI_DEVICE_NAME) + " -s " + syxPath + " -i " + sysex_fw_update_delay_ms;
-    TEST_ASSERT_EQUAL_INT(0, test::wsystem(cmd));
-    LOG(INFO) << "Firmware file sent successfully, waiting " << startup_delay_ms << " ms";
-    test::sleepMs(startup_delay_ms);
+        if (!MIDIHelper::devicePresent())
+        {
+            LOG(ERROR) << "OpenDeck device not found after firmware update, aborting";
+            TEST_ASSERT(false == true);
+        }
 
-    if (!MIDIHelper::devicePresent())
-    {
-        LOG(ERROR) << "OpenDeck device not found after firmware update, aborting";
-        TEST_ASSERT(false == true);
-    }
+        handshake();
+    };
 
-    handshake();
+    enterBootloaderMode();
+    sendFirmwareFile();
+
+    LOG(INFO) << "Flashing the board with latest available firmware from GitHub";
+    flash(true);
+    enterBootloaderMode();
+    sendFirmwareFile();
 }
 
 TEST_CASE(BackupAndRestore)

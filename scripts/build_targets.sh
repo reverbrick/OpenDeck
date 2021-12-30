@@ -98,6 +98,14 @@ do
 
             make -C ../src TARGET="${targets[$i]}" DEBUG=0
             make TARGET="${targets[$i]}" DEBUG=0 HW_TESTING=1 TESTS=hw
+
+            #download latest binaries from github - used later in tests
+            latest_github_release=$(curl -L -s -H 'Accept: application/json' https://github.com/shanteacontrols/OpenDeck/releases/latest | dasel -p json --plain tag_name)
+            dl_dir=/tmp/latest_github_release
+            mkdir -p $dl_dir
+
+            curl -L https://github.com/shanteacontrols/OpenDeck/releases/download/"$latest_github_release"/"${targets[$i]}".bin -o $dl_dir/"${targets[$i]}".bin
+            curl -L https://github.com/shanteacontrols/OpenDeck/releases/download/"$latest_github_release"/"${targets[$i]}".hex -o $dl_dir/"${targets[$i]}".hex
         else
             #only defines are needed here
             make -C ../src TARGET="${targets[$i]}" DEBUG=0 pre-build
