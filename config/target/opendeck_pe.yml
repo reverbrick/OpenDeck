@@ -1,5 +1,5 @@
 ---
-  mcu: "stm32f411ce"
+  mcu: "stm32f401cc"
   extClockMhz: 25
   usb: true
   uart:
