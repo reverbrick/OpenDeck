@@ -48,4 +48,4 @@
       s3:
         port: "0"
         index: 18
-  test: true
+  test: false
