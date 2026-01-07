@@ -30,7 +30,7 @@
           index: 17
   buttons:
     type: "native"
-    extPullups: true
+    extPullups: false
     pins:
     -
       port: "0"
