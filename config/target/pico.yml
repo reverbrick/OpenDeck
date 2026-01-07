@@ -63,18 +63,25 @@
       port: "0"
       index: 13
   analog:
-    type: "native"
+    type: "4067"
     inputVoltage: "3.3"
+    multiplexers: 1
     pins:
-    -
-      port: "0"
-      index: 26
-    -
-      port: "0"
-      index: 27
-    -
-      port: "0"
-      index: 28
+      z0:
+        port: "0"
+        index: 26
+      s0:
+        port: "0"
+        index: 21
+      s1:
+        port: "0"
+        index: 20
+      s2:
+        port: "0"
+        index: 19
+      s3:
+        port: "0"
+        index: 18
   leds:
     external:
       type: "native"
