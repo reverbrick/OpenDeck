@@ -28,40 +28,6 @@
         scl:
           port: "0"
           index: 17
-  buttons:
-    type: "native"
-    extPullups: false
-    pins:
-    -
-      port: "0"
-      index: 2
-    -
-      port: "0"
-      index: 3
-    -
-      port: "0"
-      index: 6
-    -
-      port: "0"
-      index: 7
-    -
-      port: "0"
-      index: 8
-    -
-      port: "0"
-      index: 9
-    -
-      port: "0"
-      index: 10
-    -
-      port: "0"
-      index: 11
-    -
-      port: "0"
-      index: 12
-    -
-      port: "0"
-      index: 13
   analog:
     type: "4067"
     inputVoltage: "3.3"
@@ -80,31 +46,6 @@
         port: "0"
         index: 19
       z3:
-        port: "0"
-        index: 19
-  leds:
-    external:
-      type: "native"
-      pins:
-      -
-        port: "0"
-        index: 14
-      -
-        port: "0"
-        index: 15
-      -
-        port: "0"
-        index: 22
-      -
-        port: "0"
-        index: 21
-      -
-        port: "0"
-        index: 20
-      -
-        port: "0"
-        index: 19
-      -
         port: "0"
         index: 18
   test: true
