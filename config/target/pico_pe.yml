@@ -28,6 +28,22 @@
         scl:
           port: "0"
           index: 17
+  buttons:
+    type: "native"
+    extPullups: true
+    pins:
+    -
+      port: "0"
+      index: 14
+    -
+      port: "0"
+      index: 10
+    -
+      port: "0"
+      index: 6
+    -
+      port: "0"
+      index: 2
   analog:
     type: "4067"
     inputVoltage: "3.3"
@@ -48,4 +64,20 @@
       s3:
         port: "0"
         index: 18
+  leds:
+    external:
+      type: "native"
+      pins:
+      -
+        port: "0"
+        index: 15
+      -
+        port: "0"
+        index: 11
+      -
+        port: "0"
+        index: 7
+      -
+        port: "0"
+        index: 3
   test: false
