@@ -69,19 +69,19 @@
     pins:
       s0:
         port: "0"
-        index: 31
+        index: 26
       z0:
         port: "0"
-        index: 27
+        index: 21
       z1:
         port: "0"
-        index: 26
+        index: 20
       z2:
         port: "0"
-        index: 25
+        index: 19
       z3:
         port: "0"
-        index: 24
+        index: 19
   leds:
     external:
       type: "native"
