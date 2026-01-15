@@ -1,0 +1,23 @@
+---
+  mcu: "rp2040"
+  usb: true
+  analog:
+    type: "4067"
+    inputVoltage: "3.3"
+    multiplexers: 1
+    pins:
+      z0:
+        port: "0"
+        index: 26
+      s0:
+        port: "0"
+        index: 7
+      s1:
+        port: "0"
+        index: 8
+      s2:
+        port: "0"
+        index: 9
+      s3:
+        port: "0"
+        index: 10
