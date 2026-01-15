@@ -11,13 +11,13 @@
         index: 27
       s0:
         port: "0"
-        index: 7
+        index: 3
       s1:
         port: "0"
-        index: 8
+        index: 4
       s2:
         port: "0"
-        index: 9
+        index: 2
       s3:
         port: "0"
-        index: 10
+        index: 1
