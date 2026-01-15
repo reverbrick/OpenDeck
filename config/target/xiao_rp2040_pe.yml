@@ -8,7 +8,7 @@
     pins:
       z0:
         port: "0"
-        index: 26
+        index: 27
       s0:
         port: "0"
         index: 7
